@@ -3,10 +3,10 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Personal Access Token (repo sc
 const REPO = "minh597/pleaseapi"; // ví dụ: hoangdev/null-shop
 const PATH = "data/products.json";
 
-const { Octokit } = require("@octokit/rest");
+import { Octokit } from "@octokit/rest";
 
 export default async function handler(req, res) {
-  // Check token
+  
   const authHeader = req.headers.authorization;
   if (!authHeader || authHeader !== `Bearer ${TOKEN}`) {
     return res.status(401).json({ error: "Token sai hoặc thiếu rồi bé ơi" });
