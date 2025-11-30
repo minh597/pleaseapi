@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const urlToken = req.query.token;
 
   if (!urlToken || urlToken !== TOKEN) {
-    return res.status(401).json({ error: "Sai token rồi bé ơi", token_received: urlToken });
+    return res.status(401).json({ error: "GET OUT OF HERE BUD 🤬"});
   }
 
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
