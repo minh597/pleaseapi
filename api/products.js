@@ -1,21 +1,22 @@
-const TOKEN = "BumSieuDepTraiHaHa"; // đổi thành token khó hơn nhé
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Personal Access Token (repo scope)
-const REPO = "minh597/pleaseapi"; // ví dụ: hoangdev/null-shop
+const TOKEN = "BumSieuDepTraiHaHa"; // đổi token riêng
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const REPO = "minh597/pleaseapi";
 const PATH = "data/products.json";
 
 import { Octokit } from "@octokit/rest";
 
 export default async function handler(req, res) {
-  
-  const authHeader = req.headers.authorization;
-  if (!authHeader || authHeader !== `Bearer ${TOKEN}`) {
-    return res.status(401).json({ error: "Token sai hoặc thiếu rồi bé ơi" });
+  // --- CHECK TOKEN ---
+  const urlToken = req.query.token;
+
+  if (!urlToken || urlToken !== TOKEN) {
+    return res.status(401).json({ error: "Sai token rồi bé ơi", token_received: urlToken });
   }
 
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
   try {
-    // Lấy file hiện tại để lấy SHA (bắt buộc khi update)
+    // Lấy file hiện tại
     const { data } = await octokit.repos.getContent({
       owner: REPO.split("/")[0],
       repo: REPO.split("/")[1],
@@ -27,12 +28,12 @@ export default async function handler(req, res) {
       products = JSON.parse(Buffer.from(data.content, "base64").toString());
     }
 
-    // GET tất cả
+    // --- GET ---
     if (req.method === "GET") {
       return res.status(200).json(products);
     }
 
-    // POST thêm sản phẩm mới
+    // --- POST ---
     if (req.method === "POST") {
       const { name, quantity, des, price, img } = req.body;
 
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
       }
 
       const newProduct = {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
         name,
         quantity: Number(quantity) || 0,
         des: des || "",
@@ -64,9 +65,10 @@ export default async function handler(req, res) {
       return res.status(201).json(newProduct);
     }
 
-    // PUT cập nhật (theo id)
+    // --- PUT ---
     if (req.method === "PUT") {
       const { id, name, quantity, des, price, img } = req.body;
+
       const index = products.findIndex((p) => p.id === id);
       if (index === -1) return res.status(404).json({ error: "Không tìm thấy sản phẩm" });
 
@@ -92,9 +94,10 @@ export default async function handler(req, res) {
       return res.status(200).json(products[index]);
     }
 
-    // DELETE
+    // --- DELETE ---
     if (req.method === "DELETE") {
       const { id } = req.query;
+
       const index = products.findIndex((p) => p.id === id);
       if (index === -1) return res.status(404).json({ error: "Không tìm thấy" });
 
@@ -110,12 +113,13 @@ export default async function handler(req, res) {
         branch: "main",
       });
 
-      return res.status(200).json({ message: "Xóa thành công", deleted });
+      return res.status(200).json({ message: "Xoá thành công", deleted });
     }
 
-    res.status(405).json({ error: "Method không được hỗ trợ" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Lỗi server rồi bé ơi", details: error.message });
+    res.status(405).json({ error: "Method không hỗ trợ" });
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Lỗi server", details: e.message });
   }
 }
